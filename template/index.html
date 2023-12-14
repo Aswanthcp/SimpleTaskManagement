@@ -1,0 +1,73 @@
+{% extends "base.html" %} {% block title %}Task Manager{% endblock %} 
+{% block content %}
+<div>
+  <button onclick="openModal()" class="add-task-button">Add New Task</button>
+  {% include 'create_task_modal.html' %}
+</div>
+<div class="task-table">
+  {% if tasks%}
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Due Date</th>
+        <th>Completed</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in tasks %}
+      <tr>
+        <td>{{ item.title }}</td>
+        <td>{{ item.description }}</td>
+        <td>{{ item.due_date }}</td>
+        <td>
+          <label class="toggle">
+            <input
+              type="checkbox"
+              {% if item.completed%}checked{%endif%}
+              onchange="toggleCompleted(this,{{ item.id }})"
+            />
+            <span class="slider"></span>
+          </label>
+          <span id="status{{ item.id }}"
+          style="color: {% if item.completed %}green{% else %}red{% endif %};">{% if item.completed %}Completed{% else %}Not completed{% endif %}</span
+          >
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% else %}
+
+  <p class="center-text">No tasks yet.</p>
+
+  {% endif %}
+</div>
+
+<script>
+  function toggleCompleted(checkbox, taskId) {
+    const statusElement = document.getElementById(`status${taskId}`);
+
+    const newValue = checkbox.checked ? true : false;
+
+    fetch(`/update_completed/${taskId}/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `completed=${newValue}`,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        checkbox.checked = data.status === "completed";
+        statusElement.innerText = data.status;
+        location.reload();
+      })
+      .catch((error) => console.error("Error:", error));
+  }
+</script>
+
+{% endblock %}

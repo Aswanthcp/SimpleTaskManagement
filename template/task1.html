@@ -1,0 +1,89 @@
+<!-- create_task_modal.html -->
+<div id="createTaskModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>Create New Task</h2>
+      <form
+        id="createTaskForm"
+        method="post"
+        action="{% url 'app:create_task_modal' %}"
+        onsubmit="validateForm()"
+      >
+        {% csrf_token %} {{ form.as_p }}
+  
+        <button type="button" onclick="submitForm()">Submit</button>
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    function openModal() {
+      const form = document.getElementById("createTaskForm");
+      console.log("Form:", form);
+      const formData = new FormData(form);
+      console.log("Form Data:", formData);
+      document.getElementById("createTaskModal").style.display = "block";
+    }
+  
+    function closeModal() {
+      document.getElementById("createTaskModal").style.display = "none";
+    }
+  
+    function submitForm() {
+      const form = document.getElementById("createTaskForm");
+      const formData = new FormData(form);
+  
+      fetch('{% url "app:create_task_modal" %}', {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: formData,
+      })
+        .then((data) => {
+          console.log("Success:", data);
+          closeModal();
+  
+          location.reload();
+        })
+        .catch((error) => {
+          console.log("Error:", error);
+        });
+    }
+    function validateForm() {
+      const form = document.getElementById("createTaskForm");
+      const inputs = form.querySelectorAll("input");
+  
+      let isValid = true;
+  
+      inputs.forEach((input) => {
+        // Check validity using Constraint API
+        if (!input.checkValidity()) {
+          isValid = false;
+          // Highlight the invalid input (you can customize this part)
+          input.style.border = "1px solid red";
+        }
+      });
+  
+      if (!isValid) {
+        alert("Please fill out all the required fields.");
+      }
+  
+      return isValid;
+    }
+  
+    window.onclick = function (event) {
+      var modal = document.getElementById("createTaskModal");
+      if (event.target == modal) {
+        closeModal();
+      }
+    };
+    document
+      .getElementById("createTaskForm")
+      .addEventListener("submit", function (event) {
+        if (!validateForm()) {
+          event.preventDefault();
+        }
+      });
+  </script>
+  
